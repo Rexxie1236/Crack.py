@@ -1,47 +1,55 @@
-import zipfile
-import os
 import time
+import sys
+import os
 
-def crack_zip(zip_file, wordlist_file):
-    # Check if the zip file exists
-    if not os.path.exists(zip_file):
-        print(f"Error: The zip file {zip_file} does not exist.")
-        return
+def crack_file(file_path):
+    """
+    This function reads a .txt file and extracts IDs and passwords.
+
+    Args:
+        file_path (str): Path to the text file.
+
+    Returns:
+        None
+    """
+    try:
+        if not os.path.exists(file_path):
+            print(f"Error: The file {file_path} does not exist.")
+            return
+
+        print(f"Opening file: {file_path}")
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+        
+        print("Searching for IDs and passwords...")
+        found = False
+        for line in lines:
+            # Assuming the format of each line is "ID: [some_id], Password: [some_password]"
+            if "ID:" in line and "Password:" in line:
+                found = True
+                print(line.strip())  # Print the full matching line
+        
+        if not found:
+            print("No IDs and passwords found in the file.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def main():
+    # Ensure the script has the correct arguments
+    if len(sys.argv) != 2:
+        print("Usage: python Crack.py <file_path>")
+        sys.exit(1)
     
-    # Check if the wordlist file exists
-    if not os.path.exists(wordlist_file):
-        print(f"Error: The wordlist file {wordlist_file} does not exist.")
-        return
+    file_path = sys.argv[1]
 
-    # Open the zip file
-    with zipfile.ZipFile(zip_file) as zipf:
-        # Open the wordlist file
-        with open(wordlist_file, 'r') as wordlist:
-            for line in wordlist:
-                # Strip the newline character from each line
-                password = line.strip()
-                try:
-                    # Try extracting with the password
-                    zipf.setpassword(password.encode())
-                    zipf.testzip()  # This will attempt to extract the zip and check the password
-                    print(f"Password found: {password}")
-                    return  # Exit the loop once the password is found
-                except RuntimeError:
-                    # Password is incorrect, continue trying
-                    continue
-
-    print("Password not found in the wordlist.")
+    start_time = time.time()
+    print("Starting the cracking process...")
+    
+    crack_file(file_path)
+    
+    elapsed_time = time.time() - start_time
+    print(f"Time taken: {elapsed_time:.2f} seconds")
 
 if __name__ == "__main__":
-    # File paths (make sure these are correct)
-    zip_file = 'path_to_your_zip_file.zip'
-    wordlist_file = 'path_to_your_wordlist.txt'
-
-    # Record start time for performance monitoring
-    start_time = time.time()
-
-    # Call the cracking function
-    crack_zip(zip_file, wordlist_file)
-
-    # Print how long the process took
-    print(f"Time taken: {time.time() - start_time:.2f} seconds")
+    main()
